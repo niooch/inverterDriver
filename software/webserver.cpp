@@ -65,6 +65,15 @@ void handleUstawieniaGodzin() {
   html += "</style></head><body>";
   html += "<div class='container'><h1>Ustawienia Godzin Sprzedaży Energii</h1>";
   html += "<nav><a href='/'>Strona Główna</a> <a href='/ustawienia_godzin'>Ustawienia Godzin</a></nav>";
+
+  // New panel: Display current energy prices
+  html += "<div class='panel'><h2>Aktualne ceny energii</h2><ul>";
+  for (int i = 0; i < priceCount; i++) {
+    html += "<li>" + String(prices[i].hour) + ":00 -> " + String(prices[i].price) + "</li>";
+  }
+  html += "</ul></div>";
+
+  // Existing form for selecting selling hours
   html += "<div class='panel'><h2>Wybierz opcje sprzedaży energii</h2>";
   html += "<form id='hoursForm' action='/set_hours' method='POST'>";
   html += "<label for='numSell'>Liczba godzin sprzedaży:</label>";
