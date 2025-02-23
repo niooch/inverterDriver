@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Ustawienia Godzin Sprzedaży Energii</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f7f7f7; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1, h2 { text-align: center; }
+    .panel { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+    label { display: block; margin: 10px 0 5px; }
+    .hour-grid { display: flex; flex-wrap: wrap; justify-content: center; }
+    .hour-grid label { margin: 5px; }
+    input[type="number"] { width: 100px; padding: 8px; margin-bottom: 15px; }
+    input[type="submit"] { padding: 10px 20px; background-color: #28a745; color: #fff; border: none; cursor: pointer; margin-top: 10px; }
+    input[type="submit"]:hover { background-color: #218838; }
+    nav { text-align: center; margin-bottom: 20px; }
+    nav a { margin: 0 10px; text-decoration: none; color: #007bff; }
+    nav a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Ustawienia Godzin Sprzedaży Energii</h1>
+  <nav>
+    <a href="index.html">Strona Główna</a>
+    <a href="ustawienia_godzin.html">Ustawienia Godzin</a>
+  </nav>
+
+  <div class="panel">
+    <h2>Wybierz opcje sprzedaży energii</h2>
+    <form id="hoursForm" action="/set_hours" method="POST">
+      <!-- Input for setting the overall number of selling hours -->
+      <label for="numSell">Liczba godzin sprzedaży:</label>
+      <input type="number" id="numSell" name="numSell" min="0" max="24" value="4" required>
+
+      <p>Wybierz godziny, w których chcesz sprzedawać energię:</p>
+      <div class="hour-grid">
+        <label><input type="checkbox" name="hour" value="0"> 00:00</label>
+        <label><input type="checkbox" name="hour" value="1"> 01:00</label>
+        <label><input type="checkbox" name="hour" value="2"> 02:00</label>
+        <label><input type="checkbox" name="hour" value="3"> 03:00</label>
+        <label><input type="checkbox" name="hour" value="4"> 04:00</label>
+        <label><input type="checkbox" name="hour" value="5"> 05:00</label>
+        <label><input type="checkbox" name="hour" value="6"> 06:00</label>
+        <label><input type="checkbox" name="hour" value="7"> 07:00</label>
+        <label><input type="checkbox" name="hour" value="8"> 08:00</label>
+        <label><input type="checkbox" name="hour" value="9"> 09:00</label>
+        <label><input type="checkbox" name="hour" value="10"> 10:00</label>
+        <label><input type="checkbox" name="hour" value="11"> 11:00</label>
+        <label><input type="checkbox" name="hour" value="12"> 12:00</label>
+        <label><input type="checkbox" name="hour" value="13"> 13:00</label>
+        <label><input type="checkbox" name="hour" value="14"> 14:00</label>
+        <label><input type="checkbox" name="hour" value="15"> 15:00</label>
+        <label><input type="checkbox" name="hour" value="16"> 16:00</label>
+        <label><input type="checkbox" name="hour" value="17"> 17:00</label>
+        <label><input type="checkbox" name="hour" value="18"> 18:00</label>
+        <label><input type="checkbox" name="hour" value="19"> 19:00</label>
+        <label><input type="checkbox" name="hour" value="20"> 20:00</label>
+        <label><input type="checkbox" name="hour" value="21"> 21:00</label>
+        <label><input type="checkbox" name="hour" value="22"> 22:00</label>
+        <label><input type="checkbox" name="hour" value="23"> 23:00</label>
+      </div>
+      <input type="submit" value="Zapisz ustawienia godzin">
+    </form>
+  </div>
+</div>
+</body>
+</html>

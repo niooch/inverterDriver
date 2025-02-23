@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Sterowanie Inwerterem i Konfiguracja WiFi</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background-color: #f7f7f7; }
+    .container { max-width: 800px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    h1, h2 { text-align: center; }
+    .panel { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; border-radius: 5px; }
+    label { display: block; margin: 10px 0 5px; }
+    input[type="text"], input[type="password"] { width: 100%; padding: 8px; box-sizing: border-box; }
+    input[type="submit"] { padding: 10px 20px; background-color: #28a745; color: #fff; border: none; cursor: pointer; margin-top: 10px; }
+    input[type="submit"]:hover { background-color: #218838; }
+    nav { text-align: center; margin-bottom: 20px; }
+    nav a { margin: 0 10px; text-decoration: none; color: #007bff; }
+    nav a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Sterowanie Inwerterem i Konfiguracja WiFi</h1>
+  <nav>
+    <a href="index.html">Strona Główna</a>
+    <a href="ustawienia_godzin.html">Ustawienia Godzin</a>
+  </nav>
+
+  <!-- Status sieci -->
+  <div class="panel">
+    <h2>Status Sieci</h2>
+    <p id="wifiStatus">Brak połączenia WiFi. Skonfiguruj sieć.</p>
+    <p>Aktualny adres IP: <span id="ipAddress">0.0.0.0</span></p>
+  </div>
+
+  <!-- Ustawienia WiFi -->
+  <div class="panel">
+    <h2>Ustawienia WiFi</h2>
+    <form id="wifiForm" action="/set_wifi" method="POST">
+      <label for="ssid">SSID:</label>
+      <input type="text" id="ssid" name="ssid" placeholder="Wprowadź SSID" required>
+
+      <label for="password">Hasło:</label>
+      <input type="password" id="password" name="password" placeholder="Wprowadź hasło" required>
+
+      <input type="submit" value="Zapisz ustawienia WiFi">
+    </form>
+  </div>
+
+  <!-- Dane API -->
+  <div class="panel">
+    <h2>Dane API</h2>
+    <form id="apiForm" action="/set_api" method="POST">
+      <label for="apiPassword">Hasło API:</label>
+      <input type="password" id="apiPassword" name="apiPassword" placeholder="Wprowadź hasło API" required>
+
+      <input type="submit" value="Zapisz dane API">
+    </form>
+  </div>
+</div>
+<script>
+  // Aktualizuje adres IP przyjmując hostname przeglądarki jako przybliżony adres
+  document.getElementById("ipAddress").innerText = window.location.hostname;
+  // Możesz dodać dodatkowe sprawdzenie statusu połączenia WiFi
+  // document.getElementById("wifiStatus").innerText = "Połączono z WiFi.";
+</script>
+</body>
+</html>

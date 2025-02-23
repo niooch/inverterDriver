@@ -1,0 +1,210 @@
+//biblioteki
+#include <ESP8266WiFi.h>
+#include <WiFiManager.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
+#include <time.h>
+
+// ----- DANE -----
+const char* apiURL = "http://70.34.253.46/api";
+const char* apiUser = "test";
+const char* apiPassword = "D00psko15";
+
+//zmienna serwera
+ESP8266WebServer server(80);
+
+//struktura danych z api, tablica trzymajace te dane
+struct HourPrice {
+    int hour;
+    float price;
+};
+HourPrice prices[24];
+int priceCount = 0;
+
+//ile h ma sprzedawac
+int numSellHours = 4;  //default
+
+//tablica z godzinami do sprzedarzy
+bool gridSchedule[24] = { false };
+
+// ----- Setup -----
+void setup() {
+    delay(100);
+    //inicjalizacja seriala do komunikacji
+    Serial.begin(115200);
+    //utworz AP do ustawienia danych wifi domowego jezeli nie sa zapisane
+    WiFiManager wifiManager;
+    //jezeli przy kazdym resecie maja sie restartowac ustawienia wifi to odkomentowac \/
+    //wifiManager.resetSettings();
+    Serial.println("odpalam access point...");
+    if(!wifiManager.autoConnect("fotowoltaika driver")) {
+        Serial.println("nie udalo sie utworzyc ap");
+        //restatruj esp
+        ESP.restart();
+        delay(1000);
+    }
+    Serial.println("polaczono z wifi");
+    Serial.print("adres ip lokalny: ");
+    Serial.println(WiFi.localIP());
+
+    //ustaw swoj zegar NTP
+    configTime(3600, 0, "pool.ntp.org", "time.nist.gov"); //offset, daylight, server1, server2
+
+    //pobierz ceny z api
+    fetchEnergyPrices();
+    //oblicz godziny sprzedazy
+    computeGridSchedule();
+
+    //konfig interfaceu webowego
+    server.on("/", handleRoot);
+    server.on("/set", handleSet);
+    server.begin();
+    Serial.println("interface webowy uruchomiony");
+}
+
+// ----- odswiezanie -----
+void loop() {
+    server.handleClient();
+
+    //odswiezanie cen co 0,5h
+    static unsigned long lastUpdate = 0;
+    static unsigned long refreshTime = 3600000/2; //30 min
+    if (millis() - lastUpdate > refreshTime) {
+        fetchEnergyPrices();
+        computeGridSchedule();
+        lastUpdate = millis();
+    }
+
+    //sprawdz jaki jest teraz czas NTP
+    time_t now = time(nullptr);
+    struct tm* timeInfo = localtime(&now);
+    int currentHour = timeInfo->tm_hour;
+    Serial.print("teraz jest godzina: ");
+    Serial.println(currentHour);
+    //sprawdz czy teraz jest czas na sprzedarz czy ladowanie
+    if (gridSchedule[currentHour]) {
+        Serial.println("wysylanie energii do sieci.");
+        //tutaj np daj napiecie na pin jak ma byc sprzedaz
+    } else {
+        Serial.println("ladowanie baretii.");
+        //tutaj np daj napiecie na pin jak ma byc ladowanie
+    }
+    delay(10000);  //10s
+}
+
+// ----- pobieranie cen z api -----
+void fetchEnergyPrices() {
+    Serial.println("pobieram dane z API...");
+    WiFiClient client;
+    HTTPClient http;
+
+    if (http.begin(client, apiURL)) {
+        http.setAuthorization(apiUser, apiPassword);
+        int httpCode = http.GET();
+        if (httpCode > 0) {
+            if (httpCode == HTTP_CODE_OK) {
+                String payload = http.getString();
+                Serial.println("API:");
+                Serial.println(payload);
+                parseAPIResponse(payload);
+            } else {
+                Serial.print("blad pobierania danych, kod: ");
+                Serial.println(httpCode);
+            }
+        } else {
+            Serial.print("HTTP GET, error: ");
+            Serial.println(http.errorToString(httpCode).c_str());
+        }
+        http.end();
+    } else {
+        Serial.println("nie podlaczono do API.");
+    }
+}
+// ----- parsowanie odpowiedzi z api -----
+//format danych: "HH:MM: cena" (np. "12:00: 400")
+void parseAPIResponse(String response) {
+    priceCount = 0;
+    int start = 0;
+    while (start < response.length()) {
+        int endLine = response.indexOf('\n', start);
+        if (endLine == -1) { endLine = response.length(); }
+        String line = response.substring(start, endLine);
+        line.trim();
+        if (line.length() > 0) {
+            int colonIndex = line.indexOf(':');
+            if (colonIndex != -1) {
+                String timePart = line.substring(0, colonIndex);
+                timePart.trim();
+                int hour = timePart.substring(0, 2).toInt();
+                int secondColon = line.indexOf(':', colonIndex + 1);
+                if (secondColon != -1) {
+                    String priceStr = line.substring(secondColon + 1);
+                    priceStr.trim();
+                    float price = priceStr.toFloat();
+                    if (priceCount < 24) {
+                        prices[priceCount].hour = hour;
+                        prices[priceCount].price = price;
+                        priceCount++;
+                    }
+                }
+            }
+        }
+        start = endLine + 1;
+    }
+    Serial.println("Sparsowano odpowiedz api:");
+    for (int i = 0; i < priceCount; i++) {
+        Serial.print(prices[i].hour);
+        Serial.print(":00 -> ");
+        Serial.println(prices[i].price);
+    }
+}
+// ----- obliczanie harmonogramu -----
+//wybiera top numSellHours (najwyzsze ceny) do sprzedazy
+void computeGridSchedule() {
+    for (int i = 0; i < 24; i++) {
+        gridSchedule[i] = false;
+    }
+    if (priceCount == 0) {
+        Serial.println("Brak danych cenowych do obliczenia harmonogramu.");
+        return;
+    }
+    int sellCount = min(numSellHours, priceCount);
+    for (int i = priceCount - sellCount; i < priceCount; i++) {
+        int hr = prices[i].hour;
+        gridSchedule[hr] = true;
+    }
+    Serial.print("ustawiono godziny sprzedazy: ");
+    for (int i = 0; i < 24; i++) {
+        if (gridSchedule[i]) {
+            Serial.print(i);
+            Serial.print(":00 ");
+        }
+    }
+    Serial.println();
+}
+
+void handleRoot() {
+    String html = "<html><head><title>Kontrola sprzedazy energii przez Inwerter</title></head><body>";
+    html += "<h1>Panel Kontroli</h1>";
+    html += "<p>Aktualnie sprzedaje do sieci w godzinach: ";
+    for (int i = 0; i < 24; i++) {
+        if (gridSchedule[i]) { html += String(i) + ":00 "; }
+    }
+    html += "</p>";
+    html += "<form action='/set' method='GET'>";
+    html += "Ilosc godzin w ktorych energia bedzie sprzedawana do sieci (najwyzsza cena): ";
+    html += "<input type='number' name='numSell' min='0' max='24' value='" + String(numSellHours) + "'>";
+    html += "<input type='submit' value='Update'>";
+    html += "</form>";
+    html += "</body></html>";
+    server.send(200, "text/html", html);
+}
+
+void handleSet() {
+    if (server.hasArg("numSell")) {
+        numSellHours = server.arg("numSell").toInt();
+        computeGridSchedule();
+    }
+    server.sendHeader("Location", "/", true);
+    server.send(302, "text/plain", "");
+}
