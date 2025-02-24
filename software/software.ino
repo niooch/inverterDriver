@@ -23,7 +23,9 @@ bool gridSchedule[24] = { false };
 void setup() {
   delay(100);
   Serial.begin(115200);
-
+    //Setpu GPIO
+    pinMode(3, OUTPUT);
+    pinMode(4, OUTPUT);
   // Initialize WiFi and NTP
   initNetwork();
 
@@ -65,9 +67,14 @@ void loop() {
   // Decide whether to sell energy or charge batteries
   if (gridSchedule[currentHour]) {
     Serial.println("wysylanie energii do sieci.");
+    digitalWrite(3, HIGH);
+    digitalWrite(4, LOW);
+
     // Add hardware control code for grid sale here
   } else {
     Serial.println("ladowanie baretii.");
+    digitalWrite(3, LOW);
+    digitalWrite(4, HIGH);
     // Add hardware control code for battery charging here
   }
   delay(10000);  // 10 s
