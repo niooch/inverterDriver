@@ -14,15 +14,35 @@ void initNetwork() {
     IPAddress primaryDNS(8, 8, 8, 8);     // optional
     IPAddress secondaryDNS(8, 8, 4, 4);   // optional
 
-    WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
+    //WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS);
 
     // Start WiFiManager to allow configuration if credentials are not stored
     WiFiManager wifiManager;
     Serial.println("odpalam access point...");
-    if (!wifiManager.autoConnect("fotowoltaika driver")) {
+    if (!wifiManager.autoConnect("czastozysk")) {
         Serial.println("nie udalo sie utworzyc ap");
         delay(1000);
     }
+    Serial.print("Wi-Fi status: ");
+    Serial.println(WiFi.status());           // should print “3” (WL_CONNECTED)
+
+    Serial.print("SSID: ");
+    Serial.println(WiFi.SSID());
+
+    Serial.print("RSSI (signal strength): ");
+    Serial.println(WiFi.RSSI());
+
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
+
+    Serial.print("Gateway: ");
+    Serial.println(WiFi.gatewayIP());
+
+    Serial.print("Subnet: ");
+    Serial.println(WiFi.subnetMask());
+
+    Serial.print("DNS: ");
+    Serial.println(WiFi.dnsIP());            // on ESP8266: dnsIP(0)
     Serial.println("polaczono z wifi");
     Serial.print("adres ip lokalny: ");
     Serial.println(WiFi.localIP());

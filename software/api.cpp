@@ -1,11 +1,12 @@
 #include "api.h"
 #include "globals.h"
 #include <ESP8266HTTPClient.h>
-
 void fetchEnergyPrices() {
     Serial.println("pobieram dane z API...");
     WiFiClient client;
     HTTPClient http;
+
+    Serial.println("Lacze z API...");
 
     if (http.begin(client, apiURL)) {
         http.setAuthorization(apiUser, apiPassword);

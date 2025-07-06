@@ -50,7 +50,7 @@ void loop() {
 
   // Refresh API data every 30 minutes
   static unsigned long lastUpdate = 0;
-  static unsigned long refreshTime = 3600000 / 2; // 30 min
+  static unsigned long refreshTime = 1000*60*60 / 2; // 30 min
   if (millis() - lastUpdate > refreshTime) {
     fetchEnergyPrices();
     computeGridSchedule();
@@ -60,7 +60,7 @@ void loop() {
   // Get current hour (NTP-synced)
   time_t now = time(nullptr);
   struct tm* timeInfo = localtime(&now);
-  int currentHour = timeInfo->tm_hour;
+  int currentHour = timeInfo->tm_hour+1%24;
   Serial.print("teraz jest godzina: ");
   Serial.println(currentHour);
 
